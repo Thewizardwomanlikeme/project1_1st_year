@@ -1,0 +1,24 @@
+[project]
+name = "fastapi-tut"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Anjali Mallur", email = "anjmallur@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "fastapi>=0.140.13",
+    "fastapi-users[sqlalchemy]>=15.0.5",
+    "imagekitio>=5.8.0",
+    "python-dotenv>=1.2.2",
+    "uvicorn[standard]>=0.51.0",
+]
+
+[project.scripts]
+fastapi-tut = "fastapi_tut:main"
+
+[build-system]
+requires = ["uv_build>=0.12.0,<0.13.0"]
+build-backend = "uv_build"
