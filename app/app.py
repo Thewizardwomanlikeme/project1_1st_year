@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
+from fastapi import FastAPI, HTTPException, File, UploadFile, Depends, Form
 from app.schemas import PostCreate
 from app.db import Post, create_db_and_tables, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +13,14 @@ from contextlib import asynccontextmanager
 
 app = FastAPI(lifespan=lifespan)
 
+@app.post("/upload")
+async def upload_post(
+    file: UploadFile = File(...),
+    title: str = Form(...),
+    content: str = Form(...), 
+    db: AsyncSession = Depends(get_async_session)
+):
+    pass
 
 # text_posts = {
 #     1: {"title": "what was your pet name?", "content": "Lady Gaga"},
@@ -45,5 +53,5 @@ app = FastAPI(lifespan=lifespan)
 #     deleted_post = text_posts.pop(id, None)
 #     if deleted_post is None:
 #         raise HTTPException(status_code=404, detail="post not found")
-#     return f"message with title'{deleted_post.get("title")}' has been deleted" 
-#     # to access anything in is dictionary use .get("smtg") and not .smtg or smtg 
+#     return f"message with title'{deleted_post.get('title')}' has been deleted"
+#  to access anything in is dictionary use .get("smtg") and not .smtg or something
