@@ -20,9 +20,27 @@ class Post(Base): #inherits from the declarative base data model
     url = Column(String, nullable=False) #nullable decides whether that that coloumn can be left empty or it is mandatory to fill it
     file_type = Column(String, nullable=False) 
     file_name = Column(String, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    # putting () to utcnow will result in calling the function once and storing a default, fixed "return value" which came by calling it 
-    # while using utcnow w/o the () will store the "function" as its default and not the return value
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)) # Coordinated Universal Time (UTC).
+    '''DateTime gives date and time but wont specify the time zone (like ist and est) that's why timezone=True is a must
+    - putting () to utc will result in calling the function once and storing a default, fixed "return value" which came by calling it 
+    - while using utc w/o the () will store the "function" as its default and not the return value
+    - lamda does the same as not putting (), it tells to call the datetime only when needed not immediately
+    - datetime.now means to NOW look at the standard utc clock (timezone.utc) or the world's standard clock.
+    - utc handles multinational time issues well
+
+    default=datetime.now(timezone.utc)
+    App starts:
+    10:00 AM
+    Python executes immediately.
+    Every post gets
+    10:00 AM
+    ❌ Wrong.
+    
+    so app/db.py line 23 means - means:
+
+"Create a column named created_at that stores a date and time (with time zone). 
+If the user doesn't provide a value, automatically call datetime.now(timezone.utc) at the moment the row is created and store that timestamp."
+'''
 
 engine = create_async_engine(DATABASE_URL) #make the road which connects your app to the database
 async_sessionmaker = async_sessionmaker(engine, expire_on_commit=False) 
