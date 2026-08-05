@@ -4,7 +4,7 @@ from sqlalchemy import Column, String, Text, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, relationship
-from datetime import datetime 
+from datetime import datetime, timezone
 
 # An ORM (Object Relational Model) is like a translator that lets you talk to a database using Python instead of SQL.
 
@@ -15,13 +15,14 @@ class Base(DeclarativeBase):
 
 class Post(Base): #inherits from the declarative base data model
     __tablename__ = "post"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4) # primarykey = True makes sure that everytime a key id to be generare
-    caption = Column(Text)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4) # primarykey = True tell sqlalchemy that this column is unique and it must use this column for identification purpose.
+    caption = Column(Text) #create a column which holds 'text' datatype only
     url = Column(String, nullable=False) #nullable decides whether that that coloumn can be left empty or it is mandatory to fill it
     file_type = Column(String, nullable=False) 
     file_name = Column(String, nullable=False)
-    created_at = Column(DateTime, default= datetime.utcnow) #putting () to utcnow will result in calling the function once and storing a default, fixed "return value" which came by calling it 
-    # while using utcnow w/o the () will store the "function" as its default and not the return value 
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    # putting () to utcnow will result in calling the function once and storing a default, fixed "return value" which came by calling it 
+    # while using utcnow w/o the () will store the "function" as its default and not the return value
 
 engine = create_async_engine(DATABASE_URL) #make the road which connects your app to the database
 async_sessionmaker = async_sessionmaker(engine, expire_on_commit=False) 
@@ -55,5 +56,13 @@ Session (waiter)'''
 
 '''async def = "I'm willing to wait for my food." or "This function is capable of pausing while waiting, so the event loop may run other tasks during those pauses."
 await = "I'll wait until my pizza arrives." or "Pause here until this finishes."
-async with = "I'll borrow a table, and when I'm done, the waiter will automatically clear the table." or "I'll open this resource for you now, and I'll make sure it's properly closed when you're finished using it."'''
+async with = "I'll borrow a table, and when I'm done, 
+the waiter will automatically clear the table." or "I'll open this resource for you now, and I'll make sure it's properly closed when you're finished using it."'''
 
+''' class User(Base):
+    posts = relationship("Post")
+here posts is just a variable name
+relationship is a SQLAlchemy function that creates a relationship.
+Post is the model name or the type of object this relationship points to. 
+HOW DOES SQLALCHEMY KNOW WHICH TABLE TO FETCH THE OBJECTS FROM?
+it knows cuz every model class (name) points to a table name so, whenever someone says Post, they mean the posts table.'''

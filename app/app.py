@@ -3,6 +3,7 @@ from app.schemas import PostCreate
 from app.db import Post, create_db_and_tables, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
+from sqlalchemy import select
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -15,12 +16,47 @@ app = FastAPI(lifespan=lifespan)
 
 @app.post("/upload")
 async def upload_post(
-    file: UploadFile = File(...),
-    title: str = Form(...),
-    content: str = Form(...), 
-    db: AsyncSession = Depends(get_async_session)
+    file: UploadFile = File(...), # ... means, required. file is just a variable which is has type "UploadFile" and it must look for it or get it from File, check line 62 till 72
+    caption: str = Form(""), 
+    session: AsyncSession = Depends(get_async_session) 
+    # get_sync_session is a function. but we dont add () to it else the func will get called immedietely when the app starts 
+    # so instead it hands the function to fastapi to call it only when the /upload request arrives
+    # Depends(...) says: "Before running my function, please go get this thing for me.
+    # AsyncSession tells python that session (which is simply a variable is a database session)
 ):
-    pass
+    post = Post(
+        caption=caption,
+        url = "dummy url",
+        file_type = "photo",
+        file_name = "dummy name"
+    )
+    session.add(post) # fill the form (post) and give it to the librarian
+    await session.commit() # the librarian keeps it in the rack (stores it in the db)
+    await session.refresh(post) # metadata is added to the form (like id)
+    return post # the form with all the new details is presented (to show the user that their post has been posted)
+
+@app.get("/feed")
+async def get_feed(
+    session: AsyncSession = Depends(get_async_session)
+):
+    result = await session.execute(select(Post).order_by(Post.created_at.desc())) # Why await? cuz database needs time to search.
+    # select(Post) -> give me all the post objects. order_by is a filter and desc() means latest to oldest 
+    posts = [row[0] for row in result.all()]
+
+    posts_data = [] # we can directly return the post but sometimes the post has extra fields you don't want users to see. So we create a new clean dictionary.
+    for post in posts:
+        posts_data.append({
+            "id": str(post.id), # all this conveting is bcuz JSON natively supports numbers (both integers and decimals) and strings 
+            # (text in double quotes) as fundamental data types, but it cannot directly contain raw files or binary data.
+            # JSON also natively supports booleans (true, false), null, arrays ([]), and objects ({}).
+            "caption": post.caption,
+            "url": post.url,
+            "file_type": post.file_type,
+            "file_name": post.file_name,
+            "created_at": post.created_at.isoformat()
+            # isoformat converts ambiguous dates (like 05/08/2026) into a strict, standard sequence (2026-08-05T14:30:00Z) that machines can universally understand and sort.
+        })
+        return {"post": posts_data}
 
 # text_posts = {
 #     1: {"title": "what was your pet name?", "content": "Lady Gaga"},
@@ -55,3 +91,13 @@ async def upload_post(
 #         raise HTTPException(status_code=404, detail="post not found")
 #     return f"message with title'{deleted_post.get('title')}' has been deleted"
 #  to access anything in is dictionary use .get("smtg") and not .smtg or something
+
+# file: UploadFile = File(...)
+
+# UploadFile
+# Means:
+# "I expect a file object."
+
+# File(...)
+# Means:
+# "Find this value in the uploaded files."
