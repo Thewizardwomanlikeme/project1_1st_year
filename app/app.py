@@ -56,7 +56,7 @@ async def get_feed(
             "created_at": post.created_at.isoformat()
             # isoformat converts ambiguous dates (like 05/08/2026) into a strict, standard sequence (2026-08-05T14:30:00Z) that machines can universally understand and sort.
         })
-        return {"post": posts_data}
+    return {"post": posts_data}
 
 # text_posts = {
 #     1: {"title": "what was your pet name?", "content": "Lady Gaga"},
