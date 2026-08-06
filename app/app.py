@@ -4,7 +4,7 @@ from app.db import Post, create_db_and_tables, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
 from sqlalchemy import select
-from app.images import upload_to_imagekit
+from app.images import upload_to_imagekit 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,13 +36,14 @@ async def upload_post(
     await session.refresh(post) # metadata is added to the form (like id)
     return post # the form with all the new details is presented (to show the user that their post has been posted)
 
-@app.get("/feed")
+@app.get("/feed") # One endpoint maps to one function. like one postman can ring only one doorbell
 async def get_feed(
     session: AsyncSession = Depends(get_async_session)
 ):
     result = await session.execute(select(Post).order_by(Post.created_at.desc())) # Why await? cuz database needs time to search.
+    # You use .execute() whenever you have a SQL statement (like select, update, delete, etc.) that you want the database to run.
     # select(Post) -> give me all the post objects. order_by is a filter and desc() means latest to oldest 
-    posts = [row[0] for row in result.all()]
+    posts = [row[0] for row in result.all()] # iterate over all the results (tuple) and row[0] extracts the first item from the tuple
 
     posts_data = [] # we can directly return the post but sometimes the post has extra fields you don't want users to see. So we create a new clean dictionary.
     for post in posts:
