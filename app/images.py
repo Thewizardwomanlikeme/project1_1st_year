@@ -2,6 +2,14 @@ from dotenv import load_dotenv
 from imagekitio import ImageKit
 import os
 
+'''ImageKit stores the image.
+SQLite (test.db) stores information about the image.
+
+note:
+async def  → await it
+
+def        → don't await it'''
+
 load_dotenv()
 
 private_key = os.getenv("IMAGEKIT_PRIVATE_KEY") 
@@ -15,7 +23,7 @@ if private_key and url_endpoint:
     )
 
 
-def upload_to_imagekit(file_bytes: bytes, file_name: str, folder: str = "posts"):
+def upload_to_imagekit(file_bytes: bytes, file_name: str, folder: str = "posts"): # if folder is not specified then default to posts
     if imagekit is None:
         raise RuntimeError("ImageKit is not configured. Set IMAGEKIT_PRIVATE_KEY and IMAGEKIT_URL first.")
 
@@ -26,4 +34,8 @@ def upload_to_imagekit(file_bytes: bytes, file_name: str, folder: str = "posts")
         use_unique_file_name=True,
     )
 
-    return result.url if hasattr(result, "url") else None
+    return {
+    "url": result.url,
+    "file_name": result.name,
+    "file_type": result.file_type
+}
