@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from imagekitio import ImageKit
+from pathlib import Path
 import os
 
 '''ImageKit stores the image.
@@ -10,22 +11,21 @@ async def  → await it
 
 def        → don't await it'''
 
-load_dotenv()
+dotenv_path = Path(__file__).resolve().parents[1] / ".env"
+load_dotenv(dotenv_path=dotenv_path)
 
-private_key = os.getenv("IMAGEKIT_PRIVATE_KEY") 
-url_endpoint = os.getenv("IMAGEKIT_URL")
+private_key = os.getenv("IMAGEKIT_PRIVATE_KEY")
 
 imagekit = None
-if private_key and url_endpoint:
+if private_key:
     imagekit = ImageKit(
         private_key=private_key,
-        url_endpoint=url_endpoint,
     )
 
 
 def upload_to_imagekit(file_bytes: bytes, file_name: str, folder: str = "posts"): # if folder is not specified then default to posts
     if imagekit is None:
-        raise RuntimeError("ImageKit is not configured. Set IMAGEKIT_PRIVATE_KEY and IMAGEKIT_URL first.")
+        raise RuntimeError("ImageKit is not configured. Set IMAGEKIT_PRIVATE_KEY first.")
 
     result = imagekit.files.upload(
         file=file_bytes,
