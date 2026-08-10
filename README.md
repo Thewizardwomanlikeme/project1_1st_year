@@ -1,0 +1,1 @@
+creating a simple photo and video sharing application, similar to early versions of Instagram, where users can sign in, post content, and view a feed of shared media. Learnt API architecture, database integration, user authentication with JWT tokens, and handling media uploads using the Tim's video sponser imagekit.io
