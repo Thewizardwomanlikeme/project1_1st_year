@@ -5,10 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
 from sqlalchemy import select
 from app.images import upload_to_imagekit 
-import shutil
-import uuid
-import os
-import tempfile
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,15 +27,16 @@ async def upload_post(
 ):
     file_bytes = await file.read()
     file_name = file.filename
-    image = upload_to_imagekit(file_bytes=file_bytes, file_name=file_name)
-
-
+    try:
+        upload_result = upload_to_imagekit(file_bytes=file_bytes, file_name=file_name)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
     post = Post(
         caption=caption,
-        url= image["url"],
-        file_type=image["file_type"],
-        file_name=image["file_name"]
+        url=upload_result["url"],
+        file_type=upload_result["file_type"],
+        file_name=upload_result["file_name"],
     )
     session.add(post) # fill the form (post) and give it to the librarian
     await session.commit() # the librarian keeps it in the rack (stores it in the db)
