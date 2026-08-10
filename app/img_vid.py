@@ -36,9 +36,9 @@ def upload_to_imagekit(file_bytes: bytes, file_name: str, folder: str = "posts")
             "Unsupported file type. Only JPG, JPEG, PNG, GIF, MP4, and WEBM files are allowed."
         )
 
-    if len(file_bytes) > MAX_UPLOAD_SIZE_BYTES:
+    if len(file_bytes) > MAX_UPLOAD_SIZE_BYTES: 
         raise ValueError(
-            f"Upload exceeded the maximum allowed size of {MAX_UPLOAD_SIZE_BYTES // 1024 // 1024} MB."
+            f"Upload exceeded the maximum allowed size of {MAX_UPLOAD_SIZE_BYTES // 1024 // 1024} MB." #52,428,800 // 1024 converts bytes → KB. Then: // 1024 converts KB → MB.
         )
 
     result = imagekit.files.upload(
@@ -53,3 +53,25 @@ def upload_to_imagekit(file_bytes: bytes, file_name: str, folder: str = "posts")
         "file_name": result.name,
         "file_type": result.file_type,
     }
+
+'''                 USER UPLOADS FILE
+                         ↓
+             Is ImageKit configured?
+                    ↙          ↘
+                  NO            YES
+                  ↓              ↓
+                ERROR       Convert filename
+                                to lowercase
+                                  ↓
+                    Is extension allowed?
+                         ↙          ↘
+                       NO           YES
+                       ↓             ↓
+                     ERROR       Check file size
+                                      ↓
+                             Is it ≤ 50 MB?
+                               ↙          ↘
+                             NO           YES
+                             ↓             ↓
+                           ERROR       Continue with
+                                      ImageKit upload'''
