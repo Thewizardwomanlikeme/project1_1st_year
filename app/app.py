@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile, Depends, Form
+from fastapi import FastAPI, HTTPException, File, UploadFile, Depends, Form, Query
 from app.schemas import PostCreate
 from app.db import Post, create_db_and_tables, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -47,12 +47,10 @@ async def upload_post(
 async def get_feed(
     session: AsyncSession = Depends(get_async_session)
 ):
-    result = await session.execute(select(Post).order_by(Post.created_at.desc())) # Why await? cuz database needs time to search.
-    # You use .execute() whenever you have a SQL statement (like select, update, delete, etc.) that you want the database to run.
-    # select(Post) -> give me all the post objects. order_by is a filter and desc() means latest to oldest 
-    posts = [row[0] for row in result.all()] # iterate over all the results (tuple) and row[0] extracts the first item from the tuple
+    result = await session.execute(select(Post).order_by(Post.created_at.desc()))
+    posts = result.scalars().all()
 
-    posts_data = [] # we can directly return the post but sometimes the post has extra fields you don't want users to see. So we create a new clean dictionary.
+    posts_data = []
     for post in posts:
         posts_data.append({
             "id": str(post.id), # all this conveting is bcuz JSON natively supports numbers (both integers and decimals) and strings 
@@ -67,18 +65,21 @@ async def get_feed(
         })
     return {"posts": posts_data}
 
-@app.delete("/post/{id}") #/delete is not used because it is unnecessary.
-async def delete_post(id: str, session: AsyncSession = Depends(get_async_session)): 
-    post = await session.get(Post, id)
-    if post is None:
+@app.delete("/post")
+async def delete_post(caption: str = Query(..., min_length=1), session: AsyncSession = Depends(get_async_session)):
+    result = await session.execute(select(Post).where(Post.caption == caption))
+    posts = result.scalars().all()
+    if not posts:
         raise HTTPException(status_code=404, detail="post not found")
 
-    session.delete(post)
+    for post in posts:
+        await session.delete(post)
+
     await session.commit()
-    return {"detail": f"Post {id} has been successfully deleted"} 
+    return {"detail": f"Deleted {len(posts)} post(s) with caption '{caption}'"}
 
 ''' text_posts = {
-     1: {"title": "what was your pet name?", "content": "Lady Gaga"},
+     1: {"title": "what was your pet name?", "content": "Bitz"},
      2: {"title": "fav shakespearen diss?", "content": "lady doth protest too much, me thinking"},
      3: {"title": "introduce yourself", "content": "its brittny bitch"},
      4: {"title": "who is your fav actor?", "content": "Nick Robynson and Belmont Cameli"},
@@ -109,8 +110,7 @@ async def delete_post(id: str, session: AsyncSession = Depends(get_async_session
      if deleted_post is None:
          raise HTTPException(status_code=404, detail="post not found")
      return f"message with title'{deleted_post.get('title')}' has been deleted"
-  to access anything in is dictionary use .get("smtg") and not .smtg or something
-
+  to access anything in is dictionary use .get("smtg") and not .smtg like title
 file: UploadFile = File(...)
 
 UploadFile

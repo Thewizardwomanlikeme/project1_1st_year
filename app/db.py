@@ -13,7 +13,7 @@ DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 class Base(DeclarativeBase):
     pass
 
-class Post(Base): #inherits from the declarative base data model
+class Post(Base): #inherits from the declarative base data model. Post is a SQLAlchemy ORM (Object Relationship Model) class. It represents post database, so SQLAlchemy uses it to create an object (row) in the database
     __tablename__ = "post"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4) # primarykey = True tell sqlalchemy that this column is unique and it must use this column for identification purpose.
     caption = Column(Text) #create a column which holds 'text' datatype only

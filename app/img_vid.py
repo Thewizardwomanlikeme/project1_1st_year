@@ -54,24 +54,24 @@ def upload_to_imagekit(file_bytes: bytes, file_name: str, folder: str = "posts")
         "file_type": result.file_type,
     }
 
-'''                 USER UPLOADS FILE
-                         ↓
-             Is ImageKit configured?
-                    ↙          ↘
-                  NO            YES
-                  ↓              ↓
-                ERROR       Convert filename
-                                to lowercase
-                                  ↓
-                    Is extension allowed?
-                         ↙          ↘
-                       NO           YES
-                       ↓             ↓
-                     ERROR       Check file size
-                                      ↓
-                             Is it ≤ 50 MB?
-                               ↙          ↘
-                             NO           YES
-                             ↓             ↓
-                           ERROR       Continue with
-                                      ImageKit upload'''
+'''         USER UPLOADS FILE
+                 ↓
+     Is ImageKit configured?
+            ↙          ↘
+          NO            YES
+          ↓              ↓
+        ERROR       Convert filename
+                        to lowercase
+                           ↓
+            Is extension allowed?
+                 ↙          ↘
+               NO           YES
+               ↓             ↓
+             ERROR       Check file size
+                              ↓
+                     Is it ≤ 50 MB?
+                       ↙          ↘
+                     NO           YES
+                     ↓             ↓
+                   ERROR       Continue with
+                              ImageKit upload'''
