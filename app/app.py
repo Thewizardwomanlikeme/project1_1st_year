@@ -67,6 +67,16 @@ async def get_feed(
         })
     return {"posts": posts_data}
 
+@app.delete("/post/{id}") #/delete is not used because it is unnecessary.
+async def delete_post(id: str, session: AsyncSession = Depends(get_async_session)): 
+    post = await session.get(Post, id)
+    if post is None:
+        raise HTTPException(status_code=404, detail="post not found")
+
+    session.delete(post)
+    await session.commit()
+    return {"detail": f"Post {id} has been successfully deleted"} 
+
 ''' text_posts = {
      1: {"title": "what was your pet name?", "content": "Lady Gaga"},
      2: {"title": "fav shakespearen diss?", "content": "lady doth protest too much, me thinking"},
