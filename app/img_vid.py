@@ -48,10 +48,20 @@ def upload_to_imagekit(file_bytes: bytes, file_name: str, folder: str = "posts")
         use_unique_file_name=True,
     )
 
+    extension = Path(file_name).suffix.lower()
+    if extension == ".gif":
+        file_type = "gif"
+    elif extension in {".mp4", ".webm"}:
+        file_type = "video"
+    elif extension in {".jpg", ".jpeg", ".png"}:
+        file_type = "image"
+    else:
+        file_type = result.file_type
+
     return {
         "url": result.url,
         "file_name": result.name,
-        "file_type": result.file_type,
+        "file_type": file_type,
     }
 
 '''         USER UPLOADS FILE
