@@ -17,7 +17,7 @@ app = FastAPI(lifespan=lifespan)
 @app.post("/upload")
 async def upload_post(
     file: UploadFile = File(...), # ... means, required. file is just a variable which is has type "UploadFile" and it must look for it or get it from File, check line 62 till 72
-    caption: str = Form(""), 
+    caption: str = Form(""), # if no value is sent, caption defaults to an empty string ""
     session: AsyncSession = Depends(get_async_session) 
     # get_sync_session is a function. but we dont add () to it else the func will get called immedietely when the app starts 
     # so instead it hands the function to fastapi to call it only when the /upload request arrives
@@ -31,7 +31,7 @@ async def upload_post(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
-    post = Post(
+    post = Post( # Post = database model (stored in SQLAlchemy table)
         caption=caption,
         url=upload_result["url"],
         file_type=upload_result["file_type"],
@@ -65,10 +65,18 @@ async def get_feed(
     return {"posts": posts_data}
 
 @app.delete("/post")
-async def delete_post(caption: str = Query(..., min_length=1), session: AsyncSession = Depends(get_async_session)):
-    result = await session.execute(select(Post).where(Post.caption == caption))
+async def delete_post(caption: str = Form(..., min_length=1), session: AsyncSession = Depends(get_async_session)): 
+    #min_length=1 means must not be empty
+    result = await session.execute(select(Post).where(Post.caption == caption)) 
+    '''a: int means “this function parameter is an integer”
+    -> int means “this function returns an integer”'''
+
     posts = result.scalars().all()
-    if not posts:
+    '''result.scalars() gives you the actual Post objects inside result container(like a toy inside a box) then you can do 
+    things like post.caption, post.id, etc. So SQLAlchemy often needs unwrapping. BUT, MongoDB usually already gives you 
+    the actual document object. Thus, different DB libraries have different shapes'''
+
+    if not posts: 
         raise HTTPException(status_code=404, detail="post not found")
 
     for post in posts:
@@ -76,6 +84,19 @@ async def delete_post(caption: str = Query(..., min_length=1), session: AsyncSes
 
     await session.commit()
     return {"detail": f"Deleted {len(posts)} post(s) with caption '{caption}'"}
+
+''' Example -
+@app.get("/items/{item_id}")
+async def get_item(
+    item_id: int,                 # path parameter
+    limit: int = Query(10),       # query parameter
+    name: str = Form(...),        # form field
+    file: UploadFile = File(...), # uploaded file
+    # json body is separate: item: Item
+):
+'''
+
+
 
 ''' text_posts = {
      1: {"title": "what was your pet name?", "content": "Bitz"},
