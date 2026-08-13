@@ -11,8 +11,21 @@ async def  → await it
 
 def        → don't await it'''
 
-dotenv_path = Path(__file__).resolve().parents[1] / ".env"
-load_dotenv(dotenv_path=dotenv_path)
+dotenv_path = Path(__file__).resolve().parents[1] / ".env"  # Find the .env file located two folders above this Python file and save its path in dotenv_path.
+'''__file__ is the path of the Python file currently being executed like in this case project/backend/img_vid.py
+Path converts the path (project/backend/img_vid.py) into an object which makes it easier to work with file/folder paths.
+.resolve converts it into a absolute (complete) path like C: /Users/Anjali/project/backend/images.py - it should actually backslash
+/ here acts like a appender
+
+The parents are:
+parents[0] → C:/Users/Anjali/project/backend
+parents[1] → C:/Users/Anjali/project
+parents[2] → C:/Users/Anjali
+
+Path(__file__).resolve().parents[1] means: Go up two directory levels from the current Python file - C: /Users/Anjali/project/backend/images.py
+'''
+
+load_dotenv(dotenv_path=dotenv_path) # this line loads all the .env secrets into the current file so that line 29 can run.
 
 private_key = os.getenv("IMAGEKIT_PRIVATE_KEY")
 

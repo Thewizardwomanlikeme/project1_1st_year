@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, File, UploadFile, Depends, Form, Query
-from app.schemas import PostCreate
 from app.db import Post, create_db_and_tables, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
@@ -53,7 +52,7 @@ async def get_feed(
     posts_data = []
     for post in posts:
         posts_data.append({
-            "id": str(post.id), # all this conveting is bcuz JSON natively supports numbers (both integers and decimals) and strings 
+            "id": str(post.id), # all this converting is bcuz JSON natively supports numbers (both integers and decimals) and strings 
             # (text in double quotes) as fundamental data types, but it cannot directly contain raw files or binary data.
             # JSON also natively supports booleans (true, false), null, arrays ([]), and objects ({}).
             "caption": post.caption,

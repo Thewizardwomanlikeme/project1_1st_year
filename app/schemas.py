@@ -4,7 +4,7 @@ class PostCreate(BaseModel): # PostCreate is a pydantic request schema. It takes
     title: str
     content: str
 
-'''     USER
+'''    USER
           ↓
        JSON
           ↓
