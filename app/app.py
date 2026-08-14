@@ -36,7 +36,7 @@ async def upload_post(
     try:
         upload_result = upload_to_imagekit(file_bytes=file_bytes, file_name=file_name)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail="Inappropriate argument value")
 
     post_obj = Post( # Post = database model (stored in SQLAlchemy table)
         title=validated_post.title,
