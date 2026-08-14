@@ -1,6 +1,6 @@
 from collections.abc import AsyncGenerator
 import uuid
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, String, Text, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, relationship
@@ -16,7 +16,7 @@ class Base(DeclarativeBase):
 class Post(Base): #inherits from the declarative base data model. Post is a SQLAlchemy ORM (Object Relationship Model) class. It represents post database, so SQLAlchemy uses it to create an object (row) in the database
     __tablename__ = "post"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4) # primarykey = True tell sqlalchemy that this column is unique and it must use this column for identification purpose.
-    caption = Column(Text) #create a column which holds 'text' datatype only
+    title = Column(Text) #create a column which holds 'text' datatype only
     url = Column(String, nullable=False) #nullable decides whether that that coloumn can be left empty or it is mandatory to fill it
     file_type = Column(String, nullable=False) 
     file_name = Column(String, nullable=False)
@@ -50,7 +50,7 @@ async_sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
 async def create_db_and_tables():
     async with engine.begin() as conn: # this line says: "I will send a car to the database". conn is the vehicle or delivery guy who goes to the database to make the request
         # async with says, "Borrow this async resource, use it, and automatically clean it up afterward." i.e I'll rent the car, use it, and retur it back
-        await conn.run_sync(Base.metadata.create_all) #await means pause here until this task finishes.". run_sync because create.all is not async. create.all creates every table that doesn't already exist.
+        await conn.run_sync(Base.metadata.create_all) # run_sync because create.all is not async. create.all creates every table that doesn't already exist.
         # this whole line means "Go through your notebook (metadata) and create every table you know about"
         # w/o await we get back a 'promise' (called a coroutine) not the actuall thing, and a TypeError or a RuntimeWarninglater when we try to perform some action on it
 

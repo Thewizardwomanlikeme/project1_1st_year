@@ -1,6 +1,8 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile, Depends, Form, Query
+from fastapi import FastAPI, HTTPException, File, UploadFile, Depends, Form
+from pydantic import ValidationError
 from app.db import Post, create_db_and_tables, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.schemas import PostCreate
 from contextlib import asynccontextmanager
 from sqlalchemy import select
 from app.img_vid import upload_to_imagekit 
@@ -16,14 +18,19 @@ app = FastAPI(lifespan=lifespan)
 
 @app.post("/upload")
 async def upload_post(
+    title: str = Form(...),
     file: UploadFile = File(...), # ... means, required. file is just a variable which is has type "UploadFile" and it must look for it or get it from File, check line 62 till 72
-    caption: str = Form(""), # if no value is sent, caption defaults to an empty string ""
     session: AsyncSession = Depends(get_async_session) 
     # get_sync_session is a function. but we dont add () to it else the func will get called immedietely when the app starts 
     # so instead it hands the function to fastapi to call it only when the /upload request arrives
     # Depends(...) says: "Before running my function, please go get this thing for me.
     # AsyncSession tells python that session (which is simply a variable is a database session)
 ):
+    try:
+        validated_post = PostCreate(title=title)
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail="Only letters, numbers and spaces are allowed as title") 
+
     file_bytes = await file.read()
     file_name = file.filename
     try:
@@ -31,16 +38,16 @@ async def upload_post(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
-    post = Post( # Post = database model (stored in SQLAlchemy table)
-        caption=caption,
+    post_obj = Post( # Post = database model (stored in SQLAlchemy table)
+        title=validated_post.title,
         url=upload_result["url"],
         file_type=upload_result["file_type"],
         file_name=upload_result["file_name"],
     )
-    session.add(post) # fill the form (post) and give it to the librarian
+    session.add(post_obj) # fill the form (post) and give it to the librarian
     await session.commit() # the librarian keeps it in the rack (stores it in the db)
-    await session.refresh(post) # metadata is added to the form (like id)
-    return post # the form with all the new details is presented (to show the user that their post has been posted)
+    await session.refresh(post_obj) # metadata is added to the form (like id)
+    return post_obj # the form with all the new details is presented (to show the user that their post has been posted)
 
 @app.get("/feed") # One endpoint maps to one function. like one postman can ring only one doorbell
 async def get_feed(
@@ -55,7 +62,7 @@ async def get_feed(
             "id": str(post.id), # all this converting is bcuz JSON natively supports numbers (both integers and decimals) and strings 
             # (text in double quotes) as fundamental data types, but it cannot directly contain raw files or binary data.
             # JSON also natively supports booleans (true, false), null, arrays ([]), and objects ({}).
-            "caption": post.caption,
+            "title": post.title,
             "url": post.url,
             "file_type": post.file_type,
             "file_name": post.file_name,
@@ -67,13 +74,13 @@ async def get_feed(
 @app.delete("/post")
 async def delete_post(caption: str = Form(..., min_length=1), session: AsyncSession = Depends(get_async_session)): 
     #min_length=1 means must not be empty
-    result = await session.execute(select(Post).where(Post.caption == caption)) 
+    result = await session.execute(select(Post).where(Post.title == caption)) 
     '''a: int means “this function parameter is an integer”
     -> int means “this function returns an integer”'''
 
     posts = result.scalars().all()
     '''result.scalars() gives you the actual Post objects inside result container(like a toy inside a box) then you can do 
-    things like post.caption, post.id, etc. So SQLAlchemy often needs unwrapping. BUT, MongoDB usually already gives you 
+    things like post.title, post.id, etc. So SQLAlchemy often needs unwrapping. BUT, MongoDB usually already gives you 
     the actual document object. Thus, different DB libraries have different shapes'''
 
     if not posts: 
@@ -83,7 +90,7 @@ async def delete_post(caption: str = Form(..., min_length=1), session: AsyncSess
         await session.delete(post)
 
     await session.commit()
-    return {"detail": f"Deleted {len(posts)} post(s) with caption '{caption}'"}
+    return {"detail": f"Deleted {len(posts)} post(s) with title '{caption}'"}
 
 ''' Example -
 @app.get("/items/{item_id}")
