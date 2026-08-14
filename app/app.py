@@ -72,9 +72,9 @@ async def get_feed(
     return {"posts": posts_data}
 
 @app.delete("/post")
-async def delete_post(caption: str = Form(..., min_length=1), session: AsyncSession = Depends(get_async_session)): 
+async def delete_post(title: str = Form(..., min_length=1), session: AsyncSession = Depends(get_async_session)): 
     #min_length=1 means must not be empty
-    result = await session.execute(select(Post).where(Post.title == caption)) 
+    result = await session.execute(select(Post).where(Post.title == title)) 
     '''a: int means “this function parameter is an integer”
     -> int means “this function returns an integer”'''
 
@@ -90,7 +90,7 @@ async def delete_post(caption: str = Form(..., min_length=1), session: AsyncSess
         await session.delete(post)
 
     await session.commit()
-    return {"detail": f"Deleted {len(posts)} post(s) with title '{caption}'"}
+    return {"detail": f"Deleted {len(posts)} post(s) with title '{title}'"}
 
 ''' Example -
 @app.get("/items/{item_id}")
