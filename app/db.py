@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import Column, String, Text, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.orm import DeclarativeBase
 from datetime import datetime, timezone
 
 # An ORM (Object Relational Model) is like a translator that lets you talk to a database using Python instead of SQL.
